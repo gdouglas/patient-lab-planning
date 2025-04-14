@@ -20,6 +20,7 @@ Below is a refined architecture review for your Patient Lab project—updated to
   - **Framework:** React  
   - **State Management:** Redux  
   - **Styling/Animation:** Shad UI, Tailwind CSS, Framer  
+  - **Icons:** react-icons
   - **Voice Capture:** Browser APIs (e.g., Web Audio API) and integration with WebRTC for real-time voice streaming
 
 ---

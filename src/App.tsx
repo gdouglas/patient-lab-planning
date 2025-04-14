@@ -22,6 +22,7 @@ function App() {
             <Route path="/documentation" element={<Documentation />} />
             <Route path="/documentation/:docId" element={<Documentation />} />
             <Route path="/wireframes" element={<Wireframes />} />
+            <Route path="/wireframes/:wireframeId" element={<Wireframes />} />
             <Route path="/diagrams" element={<Diagrams />} />
             <Route path="/diagrams/:diagramId" element={<Diagrams />} />
           </Routes>
