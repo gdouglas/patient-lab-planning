@@ -23,6 +23,7 @@ function App() {
             <Route path="/documentation/:docId" element={<Documentation />} />
             <Route path="/wireframes" element={<Wireframes />} />
             <Route path="/diagrams" element={<Diagrams />} />
+            <Route path="/diagrams/:diagramId" element={<Diagrams />} />
           </Routes>
         </motion.main>
       </div>
