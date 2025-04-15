@@ -2,6 +2,7 @@
  * Diagram service for managing PlantUML diagrams
  */
 
+// Export the DiagramItem interface
 export interface DiagramItem {
   id: string;
   title: string;
@@ -9,266 +10,223 @@ export interface DiagramItem {
   code: string;
 }
 
-// System context diagram based on the patient-lab-product-description.md
-const systemContextDiagram = `@startuml System Context Diagram
-!define RECTANGLE class
+// System Context Diagram
+const systemContextDiagram = `@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!option handwritten false
 
-' Use a more modern style
-skinparam backgroundColor white
-skinparam handwritten false
-skinparam DefaultFontName "Arial"
-skinparam ArrowColor #666666
-skinparam shadowing false
+title System Context Diagram - Patient Lab
 
-skinparam rectangle {
-  BorderColor #cccccc
-  BackgroundColor #f8f8f8
+Person(student, "Medical Student", "Uses the Patient Lab to practice clinical skills")
+Person(faculty, "Faculty Member", "Creates and manages virtual patient cases")
+
+System(patientLabApp, "Patient Lab Application", "Provides virtual patient interaction experience")
+
+System_Ext(lms, "Learning Management System", "Entrada LMS for course management")
+System_Ext(openaiApi, "OpenAI API", "Provides NLP capabilities")
+System_Ext(didApi, "D-ID API", "Animated avatar generation")
+System_Ext(cwl, "UBC CWL", "Campus-wide login authentication")
+
+Rel(student, patientLabApp, "Interacts with virtual patients")
+Rel(faculty, patientLabApp, "Creates and manages cases")
+Rel(patientLabApp, openaiApi, "Generates responses")
+Rel(patientLabApp, didApi, "Creates animated avatars")
+Rel(patientLabApp, lms, "Authenticates via LTI")
+Rel(patientLabApp, cwl, "Authenticates users")
+
+@enduml`
+
+// Technical Architecture Diagram
+const technicalArchitectureDiagram = `@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!option handwritten false
+
+title Technical Architecture - Patient Lab
+
+Container_Boundary(frontend, "Frontend System") {
+  Component(ui, "User Interface", "React, Shad UI, Tailwind CSS", "Provides user interface for interaction")
+  Component(stateManagement, "State Management", "Redux", "Manages application state")
+  Component(animation, "Animation", "Framer", "Handles animations and transitions")
 }
 
-skinparam actor {
-  BorderColor #cccccc
-  BackgroundColor #f8f8f8
+Container_Boundary(backend, "Backend System") {
+  Component(api, "API Gateway", "FastAPI", "Handles API requests")
+  Component(business, "Business Logic", "Python", "Implements business rules")
+  Component(integration, "External Integrations", "httpx", "Communicates with external APIs")
 }
 
-skinparam cloud {
-  BorderColor #cccccc
-  BackgroundColor #f8f8f8
+Container_Boundary(realtime, "Real-Time Communication") {
+  Component(webrtc, "WebRTC", "Browser API", "Handles real-time audio transmission")
+  Component(websocket, "WebSocket", "FastAPI", "Signaling for WebRTC")
 }
 
-' Main components
-rectangle "Patient Lab Application" as App #E8F5E9 {
+Container_Boundary(storage, "Data Storage") {
+  ComponentDb(database, "PostgreSQL", "RDS", "Stores user and session data")
+  ComponentDb(vectorStore, "OpenSearch", "AWS", "Vector storage for RAG")
 }
 
-' External Systems
-cloud "OpenAI API" as OpenAI #EFF8FB
-cloud "D-ID API" as DID #EFF8FB
-rectangle "LMS\\nEntrada" as LMS #FFF9C4
-rectangle "UBC CWL" as CWL #FFF9C4
-rectangle "UBC AI Sandbox" as Sandbox #EFF8FB
-rectangle "Learning Record Store" as LRS #FFF9C4
-rectangle "Oracle APEX" as APEX #FFF9C4
+Container_Boundary(auth, "Authentication") {
+  Component(ltiAuth, "LTI Authentication", "FastAPI", "Authenticates via LMS")
+  Component(cwlAuth, "CWL Authentication", "FastAPI", "Authenticates via CWL")
+}
 
-' User types
-actor "Students" as Students
-actor "Faculty" as Faculty
-actor "Administrators" as Admins
+System_Ext(openaiApi, "OpenAI API", "Provides NLP capabilities")
+System_Ext(didApi, "D-ID API", "Animated avatar generation")
+
+Rel(ui, stateManagement, "Uses")
+Rel(ui, animation, "Uses")
+Rel(ui, api, "Makes API calls", "HTTPS")
+Rel(ui, webrtc, "Streams audio", "WebRTC")
+Rel(webrtc, websocket, "Signaling")
+Rel(api, business, "Invokes")
+Rel(business, integration, "Uses")
+Rel(integration, openaiApi, "Calls", "HTTPS")
+Rel(integration, didApi, "Calls", "HTTPS")
+Rel(business, database, "Reads/Writes")
+Rel(business, vectorStore, "Queries")
+Rel(api, ltiAuth, "Authenticates LTI")
+Rel(api, cwlAuth, "Authenticates CWL")
+
+@enduml`
+
+// Data Flow Diagram
+const dataFlowDiagram = `@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+!option handwritten false
+
+title Data Flow Diagram - Patient Lab
+
+Actor(student, "Medical Student")
+Boundary(frontend, "Frontend")
+Control(api, "API Gateway")
+Control(nlp, "NLP Processing")
+Control(avatar, "Avatar Generation")
+Database(db, "Database")
+
+student -> frontend : 1. Speaks or types query
+frontend -> api : 2. Sends request
+api -> db : 3. Logs interaction
+api -> nlp : 4. Processes with OpenAI
+nlp -> api : 5. Returns response
+api -> avatar : 6. Generates avatar with D-ID
+avatar -> api : 7. Returns animated response
+api -> frontend : 8. Returns complete response
+frontend -> student : 9. Displays avatar and plays audio
+
+@enduml`
+
+// User Journey Diagram
+const userJourneyDiagram = `@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+!option handwritten false
+
+title User Journey - Patient Lab
+
+Actor(student, "Student")
+Actor(faculty, "Faculty")
+Boundary(lms, "LMS")
+Boundary(patientLab, "Patient Lab")
+Control(cases, "Case Management")
+Control(interaction, "Patient Interaction")
+Database(db, "Data Storage")
+
+faculty -> cases : 1. Creates patient case
+cases -> db : 2. Stores case data
+student -> lms : 3. Accesses course
+lms -> patientLab : 4. Launches via LTI
+patientLab -> interaction : 5. Selects patient case
+interaction -> student : 6. Interacts with virtual patient
+student -> interaction : 7. Conducts interview
+interaction -> db : 8. Records interaction
+db -> faculty : 9. Provides data for assessment
+
+@enduml`
+
+// New AWS Architecture Diagram
+const awsArchitectureDiagram = `@startuml
+!option handwritten false
+skinparam defaultFontName Arial
+skinparam rectangleBorderColor #666666
+skinparam componentBorderColor #666666
+skinparam databaseBorderColor #666666
+skinparam arrowColor #666666
+skinparam BackgroundColor #FFFFFF
+
+title AWS Architecture - Patient Lab Application
+
+rectangle "End Users" {
+  actor "Students" as students
+  actor "Faculty" as faculty
+}
+
+rectangle "Content Delivery" {
+  [CloudFront CDN] as cdn
+  [S3 Static Website] as s3frontend
+}
+
+rectangle "Application Layer" {
+  [Application Load Balancer] as alb
+  
+  rectangle "ECS Fargate Cluster" {
+    [API Container (FastAPI)] as api
+    [WebSocket Container] as websocket
+  }
+}
+
+rectangle "Data Storage" {
+  database "RDS PostgreSQL" as postgres
+  database "OpenSearch Service" as opensearch
+  [S3 Media Bucket] as s3media
+}
+
+rectangle "External Services" {
+  [OpenAI API] as openai
+  [D-ID API] as did
+  
+  rectangle "UBC Systems" {
+    [CWL Authentication] as cwl
+    [LMS (Entrada)] as lms
+  }
+}
 
 ' Connections
-Students --> App : Practice clinical interviews,\\nreceive feedback
-Faculty --> App : Create cases, define rubrics,\\nshare customized cases
-Admins --> App : Configure AI providers,\\nmonitor usage
+students --> cdn
+faculty --> cdn
+cdn --> s3frontend
+s3frontend --> alb
+alb --> api
+alb --> websocket
 
-App --> OpenAI : Natural language processing,\\nresponse generation
-App --> DID : Avatar animation
-App --> Sandbox : Alternative AI processing
-App --> LMS : LTI integration 
-App --> CWL : Authentication
-App --> LRS : Log session data in xAPI format
-App --> APEX : Log user interactions
+api --> postgres : "User/Session Data"
+api --> opensearch : "Vector Queries"
+api --> s3media : "Media Storage"
 
-note bottom of App
-  Educational application for medical students
-  to practice clinical interviews through
-  AI-powered virtual patients and receive
-  guidance from a virtual preceptor
+api --> openai : "NLP Processing"
+api --> did : "Avatar Generation"
+api --> cwl : "Authentication"
+api --> lms : "LTI Integration"
+
+note bottom of api
+  FastAPI application handling:
+  - REST endpoints
+  - Business logic
+  - External integrations
 end note
 
-@enduml`;
-
-// Technical architecture diagram
-const technicalArchitectureDiagram = `@startuml Technical Architecture
-!define RECTANGLE class
-
-' Use a more modern style
-skinparam backgroundColor white
-skinparam handwritten false
-skinparam DefaultFontName "Arial"
-skinparam ArrowColor #666666
-skinparam shadowing false
-
-skinparam rectangle {
-  BorderColor #cccccc
-  BackgroundColor #f8f8f8
-}
-
-skinparam database {
-  BorderColor #cccccc
-  BackgroundColor #f8f8f8
-}
-
-skinparam cloud {
-  BorderColor #cccccc
-  BackgroundColor #f8f8f8
-}
-
-' Main components
-package "Frontend" as Frontend #E8F5E9 {
-  rectangle "React App" as ReactApp
-  rectangle "Redux State" as Redux
-  rectangle "Shad UI Components" as ShadUI
-  rectangle "Tailwind CSS" as Tailwind
-  rectangle "Framer Animations" as Framer
-}
-
-package "Backend" as Backend #DCEDC8 {
-  rectangle "FastAPI Application" as FastAPI
-  rectangle "Uvicorn Server" as Uvicorn
-  rectangle "Prompt Management" as PromptMgmt
-  rectangle "Error Handling" as ErrorHandling
-  rectangle "AI Provider Selector" as ProviderSelector
-}
-
-package "Data Storage" as DataStorage #E1F5FE {
-  database "PostgreSQL (RDS)" as PostgreSQL
-  database "OpenSearch Vector Store" as OpenSearch
-}
-
-package "External APIs" as ExternalAPIs #FFECB3 {
-  cloud "OpenAI API" as OpenAI
-  cloud "D-ID API" as DID
-  cloud "UBC AI Sandbox" as Sandbox
-}
-
-package "Auth & Integration" as AuthInt #F3E5F5 {
-  rectangle "LTI Integration" as LTI
-  rectangle "CWL Auth" as CWL
-}
-
-package "Logging & Monitoring" as LogMon #FAFAFA {
-  rectangle "Graylog" as Graylog
-  rectangle "Oracle APEX" as APEX
-  rectangle "Learning Record Store" as LRS
-}
-
-actor "Users" as Users
-
-' Connections
-Users --> Frontend
-Frontend --> Backend : REST API calls
-Backend --> DataStorage : Data read/write
-Backend --> ExternalAPIs : API integration
-Backend --> AuthInt : Auth & session mgmt
-Backend --> LogMon : Logging events
-
-ReactApp --> Redux : State management
-ReactApp --> ShadUI : UI components
-ReactApp --> Tailwind : Styling
-ReactApp --> Framer : Animations
-
-FastAPI --> Uvicorn : Served by
-FastAPI --> PromptMgmt : Manages
-FastAPI --> ErrorHandling : Implements
-FastAPI --> ProviderSelector : Configures
-
-OpenSearch --> PostgreSQL : Indexes from
-
-@enduml`;
-
-// Data flow diagram
-const dataFlowDiagram = `@startuml Data Flow
-!define RECTANGLE class
-
-' Use a more modern style
-skinparam backgroundColor white
-skinparam handwritten false
-skinparam DefaultFontName "Arial"
-skinparam ArrowColor #666666
-skinparam shadowing false
-
-' Main components
-actor "Student" as Student
-actor "Faculty" as Faculty
-rectangle "Frontend Application" as Frontend
-rectangle "Backend API" as Backend
-rectangle "OpenAI API" as OpenAI
-rectangle "D-ID API" as DID
-database "PostgreSQL DB" as DB
-database "OpenSearch Vector Store" as VectorStore
-rectangle "LRS" as LRS
-
-' Data flow
-Student --> Frontend : 1. Student interacts with interface
-Faculty --> Frontend : 1. Faculty creates cases
-Frontend --> Backend : 2. Sends requests
-Backend --> OpenAI : 3a. Sends prompts
-OpenAI --> Backend : 4a. Returns AI responses
-Backend --> DID : 3b. Requests avatar animation
-DID --> Backend : 4b. Returns animated avatar response
-Backend --> DB : 5. Logs interactions
-Backend --> VectorStore : 6. Stores embeddings
-Backend --> LRS : 7. Logs learning records
-Backend --> Frontend : 8. Returns integrated response
-Frontend --> Student : 9. Displays response to student
-
-note right of Backend
-  Responses include:
-  - Virtual patient dialogue
-  - Preceptor guidance
-  - Clinical reasoning help
-  - Differential diagnosis
+note bottom of postgres
+  Stores:
+  - User data
+  - Session information
+  - Case configurations
 end note
 
-@enduml`;
-
-// User journey diagram
-const userJourneyDiagram = `@startuml User Journey
-!define RECTANGLE class
-
-' Use a more modern style
-skinparam backgroundColor white
-skinparam handwritten false
-skinparam DefaultFontName "Arial"
-skinparam ArrowColor #666666
-skinparam shadowing false
-
-' Main components
-actor "Student" as Student
-actor "Faculty" as Faculty
-rectangle "LMS / Entrada" as LMS
-rectangle "Patient Lab Application" as App
-rectangle "OpenAI API" as OpenAI
-rectangle "D-ID API" as DID
-database "Database" as DB
-
-' Student journey
-Student -> LMS : 1. Log in to LMS
-LMS -> App : 2. Launch via LTI
-App -> Student : 3. Present patient cases
-Student -> App : 4. Select a case
-App -> DB : 5. Load case content
-App -> Student : 6. Present simulated patient
-Student -> App : 7. Interview virtual patient
-App -> OpenAI : 8. Send user query
-OpenAI -> App : 9. Generate patient response
-App -> DID : 10. Generate avatar response
-DID -> App : 11. Return animated avatar
-App -> Student : 12. Display response
-Student -> App : 13. Request guidance from preceptor
-App -> OpenAI : 14. Generate preceptor response
-App -> Student : 15. Provide clinical reasoning guidance
-Student -> App : 16. Submit diagnosis and plan
-App -> OpenAI : 17. Generate feedback
-App -> Student : 18. Display graded feedback
-Student -> App : 19. Export chat transcript
-
-' Faculty journey (simplified)
-Faculty -> LMS : A. Log in to LMS
-LMS -> App : B. Launch author interface
-App -> Faculty : C. Present case builder
-Faculty -> App : D. Create/edit patient case
-App -> DB : E. Save case data
-Faculty -> App : F. Configure rubric
-App -> DB : G. Save evaluation criteria
-Faculty -> App : H. Share case URL with students
-Faculty -> App : I. View analytics dashboard
-
-note right of App
-  Longitudinal care scenarios:
-  Previous chat history is loaded if 
-  enabled for this case
+note bottom of opensearch
+  Vector database for:
+  - RAG-powered recommendations
+  - Semantic search
 end note
 
-@enduml`;
+@enduml`
 
 // List of available diagrams
 export const diagramItems: DiagramItem[] = [
@@ -295,6 +253,12 @@ export const diagramItems: DiagramItem[] = [
     title: 'User Journey',
     description: 'Step-by-step user journey for students and faculty',
     code: userJourneyDiagram
+  },
+  {
+    id: 'aws-architecture',
+    title: 'AWS Architecture',
+    description: 'Detailed AWS cloud architecture for hosting the Patient Lab application',
+    code: awsArchitectureDiagram
   }
 ];
 

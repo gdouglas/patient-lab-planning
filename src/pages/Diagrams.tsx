@@ -98,11 +98,11 @@ const Diagrams = () => {
   return (
     <div className="space-y-6">
       {isFullscreen && (
-        <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
-          <div className="absolute top-4 right-4 flex space-x-2">
+        <div className="fixed inset-0 bg-background z-50 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute top-4 right-4 flex space-x-2 z-10">
             <button 
               onClick={exitFullscreen}
-              className="px-3 py-1 rounded-md bg-secondary hover:bg-secondary/80"
+              className="px-3 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 shadow-md"
             >
               Exit Fullscreen
             </button>

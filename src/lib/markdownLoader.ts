@@ -1,13 +1,13 @@
 /**
  * This file provides functions to load markdown content
- * for both development and production environments.
+ * directly from the public/documentation directory.
  */
 
-// Import static markdown files as fallbacks
-import productDescriptionMd from '../assets/markdown/patient-lab-product-description.md?raw';
-import architectureMd from '../assets/markdown/achitecture.md?raw';
-import nonTechnicalDiagramsMd from '../assets/markdown/non-technical-diagrams.md?raw';
-import compliancePlanMd from '../assets/markdown/compliance-plan.md?raw';
+// Import markdown files using our virtual module imports
+import productDescriptionMd from 'virtual:md/patient-lab-product-description.md';
+import architectureMd from 'virtual:md/achitecture.md';
+import nonTechnicalDiagramsMd from 'virtual:md/non-technical-diagrams.md';
+import compliancePlanMd from 'virtual:md/compliance-plan.md';
 
 // Define the structure for markdown files
 export interface MarkdownFile {
@@ -15,7 +15,7 @@ export interface MarkdownFile {
   title: string;
   description: string;
   filename: string;
-  content?: string; // Static content as fallback
+  content: string;
 }
 
 // List of markdown documents
@@ -50,7 +50,7 @@ export const markdownFiles: MarkdownFile[] = [
   }
 ];
 
-// Function to load markdown content
+// Function to load markdown content directly from memory
 export async function loadMarkdownContent(filename: string): Promise<string> {
   try {
     // Find the markdown file by filename
@@ -60,35 +60,11 @@ export async function loadMarkdownContent(filename: string): Promise<string> {
       throw new Error(`Markdown file not found: ${filename}`);
     }
     
-    // Try to fetch from the server first
-    try {
-      // Determine the base path based on environment
-      const basePath = import.meta.env.DEV ? '' : '/patient-lab-planning';
-      const url = `${basePath}/documentation/${filename}`;
-      
-      console.log('Fetching markdown from server:', url);
-      
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        return await response.text();
-      }
-      
-      console.log('Server fetch failed, using static content');
-    } catch (fetchError) {
-      console.warn('Network fetch failed:', fetchError);
-    }
-    
-    // If server fetch fails, use the static content
-    if (markdownFile.content) {
-      console.log('Using static content for:', filename);
-      return markdownFile.content;
-    }
-    
-    throw new Error('Failed to load markdown content');
+    // Return the content directly
+    return markdownFile.content;
   } catch (error) {
     console.error('Error loading markdown:', error);
-    return `# Error Loading Document\n\nFailed to load the document: ${filename}. Please try again later.`;
+    return `# Error Loading Document\n\nFailed to load the document: ${filename}. Please try again later.\n\nDetails: ${error instanceof Error ? error.message : String(error)}`;
   }
 }
 
